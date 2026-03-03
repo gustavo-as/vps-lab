@@ -1,0 +1,139 @@
+# 05 — Landing Page
+
+## Repositório
+
+[github.com/gustavo-as/landing-page](https://github.com/gustavo-as/landing-page)
+
+## Stack
+
+- HTML + CSS puro
+- Nginx (Alpine) para servir os arquivos estáticos
+- Traefik para roteamento e SSL automático
+- GitHub Actions para CI/CD
+
+## Estrutura do projeto
+
+```
+landing-page/
+├── .github/
+│   └── workflows/
+│       └── deploy.yml    ← pipeline de CI/CD
+├── index.html            ← página principal
+├── style.css             ← estilos
+├── Dockerfile            ← build da imagem Nginx
+├── docker-compose.yml    ← configuração do container + labels Traefik
+└── .gitignore
+```
+
+---
+
+## Dockerfile
+
+```dockerfile
+FROM nginx:alpine
+
+COPY index.html /usr/share/nginx/html/index.html
+COPY style.css /usr/share/nginx/html/style.css
+
+EXPOSE 80
+```
+
+---
+
+## docker-compose.yml
+
+```yaml
+services:
+  landing-page:
+    build: .
+    container_name: landing-page
+    restart: unless-stopped
+    networks:
+      - traefik-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.landing.rule=Host(`gustavohub.com`) || Host(`www.gustavohub.com`)"
+      - "traefik.http.routers.landing.entrypoints=websecure"
+      - "traefik.http.routers.landing.tls.certresolver=letsencrypt"
+      - "traefik.http.services.landing.loadbalancer.server.port=80"
+
+networks:
+  traefik-network:
+    external: true
+```
+
+---
+
+## .github/workflows/deploy.yml
+
+```yaml
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd ~/projects/landing-page
+            git pull origin main
+            docker compose up -d --build --force-recreate
+```
+
+---
+
+## Primeiro deploy
+
+### 1. Preparar a VPS
+
+```bash
+mkdir -p ~/projects/landing-page
+cd ~/projects/landing-page
+git clone https://github.com/gustavo-as/landing-page.git .
+```
+
+### 2. Configurar secrets no repositório GitHub
+
+| Secret | Valor |
+|---|---|
+| `VPS_SSH_KEY` | Chave privada `~/.ssh/github_actions` |
+| `VPS_HOST` | `187.124.32.146` |
+| `VPS_USER` | `username` |
+
+### 3. Fazer deploy
+
+```bash
+git add .
+git commit -m "feat: initial landing page"
+git push origin main
+```
+
+O GitHub Actions executa automaticamente e o site fica disponível em `https://gustavohub.com`.
+
+---
+
+## Deploys subsequentes
+
+Qualquer alteração no código é deployada automaticamente:
+
+```bash
+# editar index.html ou style.css
+git add .
+git commit -m "feat: atualizar seção de projetos"
+git push origin main
+# deploy automático em ~20 segundos
+```

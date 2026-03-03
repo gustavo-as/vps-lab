@@ -39,8 +39,8 @@ Todos os serviços rodam em containers Docker conectados à `traefik-network`. O
 1. [Provisionamento da VPS](docs/01-hostinger-vps.md)
 2. [Configuração inicial do servidor](docs/02-server-setup.md)
 3. [Docker + Traefik](docs/03-docker-traefik.md)
-4. [CI/CD com GitHub Actions](docs/04-cicd.md) *(em breve)*
-5. [Landing Page](docs/05-landing-page.md) *(em breve)*
+4. [CI/CD com GitHub Actions](docs/04-cicd.md)
+5. [Landing Page](docs/05-landing-page.md)
 6. [Projetos de portfólio](docs/06-projects.md) *(em breve)*
 
 ## Servidor

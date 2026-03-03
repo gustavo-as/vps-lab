@@ -88,7 +88,7 @@ O hash gerado será usado no `docker-compose.yml`. Atenção: cada `$` no hash d
 ```yaml
 services:
   traefik:
-    image: traefik:v3.0
+    image: traefik:v3
     container_name: traefik
     restart: unless-stopped
     ports:
@@ -129,6 +129,10 @@ networks:
 ```bash
 cd ~/traefik && docker compose up -d
 ```
+
+> ⚠️ **Atenção:** Usar `traefik:v3.0` (versão inicial) causa erro de incompatibilidade com versões recentes do Docker:
+> `client version 1.24 is too old. Minimum supported API version is 1.44`
+> Sempre usar `traefik:v3` (latest v3) para garantir compatibilidade.
 
 ### 6. Verificar
 
